@@ -52,7 +52,7 @@ connections <- connections %>% group_by(pre_root_id, post_root_id) %>% summarise
 
 #-------------------------------------------------------------------------------
 #Load CSV
-classification <- read_csv(paste0(dataset_path,"classification_051425.csv"),
+classification <- read_csv(paste0(dataset_path,"classification.csv"),
                            col_types = cols(root_id = col_character()))
 
 # Use consolidated cell types---------------------------------------------------
