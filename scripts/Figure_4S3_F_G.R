@@ -148,9 +148,9 @@ classification <- classification %>% mutate(class = ifelse(cell_type %in% ser_ty
 
 # Serotonin from funkelab
 ser <- classification %>%
-  filter(cell_type %in% ser_types)# %>% pull(root_id) %>% paste0(collapse = ",")
+  filter(cell_type %in% ser_types)
 ser_no_bSEL <- ser %>%
-  filter(cell_type != "DNg28")# %>% pull(root_id) %>% paste0(collapse = ",")
+  filter(cell_type != "DNg28")
 # PPL1's
 dan <- classification %>%
   filter(root_id %in% c("720575940621040737", "720575940617691170"))
@@ -283,9 +283,6 @@ analyze_neuron_influence <- function(noi.ids, edges.table, ic, classification_ma
 neuron_groups_to_process <- list(
   SER = list(ids = ser$root_id, filename = "SER_CONF5"),
   DAN = list(ids = dan$root_id, filename = "DAN_CONF5"),
-  KC  = list(ids = kc$root_id,  filename = "KC_CONF5"),
-  KCab  = list(ids = kcab$root_id,  filename = "KCab_CONF5"),
-  KCg  = list(ids = kcg$root_id,  filename = "KCg_CONF5"),
   SER_no_bSEL  = list(ids = ser_no_bSEL$root_id,  filename = "SER_no_bSEL_CONF5")
 )
 
@@ -333,7 +330,7 @@ infl_class_combined <- rbind(infl_class_SER, infl_class_DAN)
 # Order
 infl_class_combined$neuron_type <- factor(
   infl_class_combined$neuron_type,
-  levels = rev(c("5HTN", "PPL1", "KCab", "KCg"))
+  levels = rev(c("5HTN", "PPL1"))
 )
 
 # Fill in blanks
@@ -363,7 +360,7 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
     labels = round(c(min(infl_class_combined$mean, na.rm = TRUE), 
                      (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
                      max(infl_class_combined$mean, na.rm = TRUE)), 1),
-    na.value = "gray30"
+    na.value = "white"
   ) + 
   labs(title = NULL,
        x = NULL,
@@ -380,7 +377,7 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid = element_blank(),
         panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8),
-        panel.background = element_rect(fill = "gray30"),
+        panel.background = element_blank(),
         legend.title.position = "bottom",
         legend.key.width = unit(1, "null"),
         legend.key.height = unit(0.3, "cm"),
@@ -390,9 +387,9 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
 print(class_plot)
 
 if(write_plots){
-  ggsave(paste0(output_path, "combined_influence_class_noKC.pdf"), 
+  ggsave(paste0(output_path, "Figure_4S3_F.pdf"), 
          plot = class_plot, width = 20, height = 16, units = "cm")
-  ggsave(paste0(output_path, "combined_influence_class_noKC.png"), 
+  ggsave(paste0(output_path, "Figure_4S3_F.pdf"), 
          plot = class_plot, width = 20, height = 16, units = "cm")
 }
 
@@ -444,7 +441,8 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
                max(infl_class_combined$mean, na.rm = TRUE)),
     labels = round(c(min(infl_class_combined$mean, na.rm = TRUE), 
                      (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
-                     max(infl_class_combined$mean, na.rm = TRUE)), 1)
+                     max(infl_class_combined$mean, na.rm = TRUE)), 1),
+    na.value = "white"
   ) + 
   labs(title = NULL,
        x = NULL,
@@ -461,7 +459,7 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid = element_blank(),
         panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8),
-        panel.background = element_rect(fill = "gray30"),
+        panel.background = element_blank(),
         legend.title.position = "bottom",
         legend.key.width = unit(1, "null"),
         legend.key.height = unit(0.3, "cm"),
@@ -471,9 +469,9 @@ class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_o
 print(class_plot)
 
 if(write_plots){
-  ggsave(paste0(output_path, "5HTN_diff_influence_class.pdf"), 
+  ggsave(paste0(output_path, "Figure_4S3_G.pdf"), 
          plot = class_plot, width = 20, height = 16, units = "cm")
-  ggsave(paste0(output_path, "5HTN_diff_influence_class.png"), 
+  ggsave(paste0(output_path, "Figure_4S3_G.pdf"), 
          plot = class_plot, width = 20, height = 16, units = "cm")
 }
 
