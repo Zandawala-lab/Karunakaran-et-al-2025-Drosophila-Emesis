@@ -1,6 +1,6 @@
-#-----Figure_4S3_F_G.R-----
+#-----Figure_4S3_E_F.R-----
 #-------------------------------------------------------------------------------
-# Influence Analysis using Codex for 5HTNs, PPL1s, and KCs ab/g.
+# Influence Analysis using Codex for 5HTNs, PPL1s.
 #
 # From Codex v783 (09/20/25):
 # connections.csv, classification.csv, consolidated_cell_types.csv
@@ -319,7 +319,7 @@ for (group_name in names(neuron_groups_to_process)) {
 
 
 #-------------------------------------------------------------------------------
-# Plotting Figure F
+# Plotting Figure E
 #-------------------------------------------------------------------------------
 
 infl_class_SER$neuron_type <- "5HTN"
@@ -401,7 +401,7 @@ if(write_plots){
 
 
 #-------------------------------------------------------------------------------
-# Plotting Figure G
+# Plotting Figure F
 #-------------------------------------------------------------------------------
 
 # Remove autocrine
