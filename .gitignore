@@ -1,5 +1,5 @@
 # Input and Output folders
-input/
+input/*
 
 # History files
 .Rhistory
