@@ -7,7 +7,7 @@
 # From GitHub funkelab/drosophila_neurotransmitters (09/20/25):
 # gt_data.csv
 #
-# Influence score takes ~5 hrs to run on initial run.
+# Influence score takes ~5 hrs to run on initial run. Depends on PC specs.
 # We used a lenient const c of +24, matching BANC, for adjusted_influence that
 # corresponds to the minimum accepted influence of 3.78e-11.
 #-------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ neuron_filename <- "NOI_influence"
 
 input_path <- "./input/"
 output_path <- "./output/"
-dataset_path <- paste0(Sys.getenv("R_USER"), "/drosophila_connectome_shared_data/") #Documents/drosophila_connectome_shared_data of current user.
+dataset_path <- paste0("D:/drosophila_connectome_shared_data/") #Documents/drosophila_connectome_shared_data of current user.
 if(!dir.exists(file.path(dataset_path))){ #Uses input_path otherwise.
   dataset_path <- input_path
 }
@@ -181,10 +181,7 @@ edges.table <- connections %>%
   ungroup() %>%
   mutate(pre = as.character(pre),
          post = as.character(post)) %>%
-  filter(count > 5)  # Apply synapse count threshold
-
-cat("Loaded", nrow(edges.table), "edges from local connectome data\n")
-head(edges.table)
+  filter(count >= 5)  # Apply synapse count threshold
 
 # Mutate column names if necessary
 classification_mapped <- classification %>%
@@ -231,13 +228,10 @@ analyze_neuron_influence <- function(noi.ids, edges.table, ic, classification_ma
     unique() %>%
     as.character()
   
-  cat("Direct targets of NOI:", length(noi.post.ids), "neurons\n")
-  
   # Calculate influence (may be slow the first time)
   system.time({
     noi.influence <- ic$calculate_influence(noi.ids)
   })
-  cat("Calculated influence for", nrow(noi.influence), "neurons\n")
   
   # Add metadata to the influence table
   noi.influence$directly_connected <- noi.influence$id %in% noi.post.ids
@@ -289,9 +283,7 @@ neuron_groups_to_process <- list(
 # Loop through each neuron group
 for (group_name in names(neuron_groups_to_process)) {
   
-  cat("\n=======================================================\n")
-  cat("Processing Neuron Group:", group_name, "\n")
-  cat("=======================================================\n")
+  cat("Processing:", group_name, "\n")
   
   current_group <- neuron_groups_to_process[[group_name]]
   
@@ -303,175 +295,13 @@ for (group_name in names(neuron_groups_to_process)) {
     classification_mapped = classification_mapped
   )
   
-  # Write the detailed metadata file if required
+  # Write the csvs
   if (exists("write_data") && write_data) {
     output_filename <- paste0(output_path, current_group$filename, "_influence_meta.csv")
     write_csv(results$meta, file = output_filename)
-    cat("Metadata saved to:", output_filename, "\n")
+    cat("csv saved to:", output_filename, "\n")
   }
-  
-  # Create the final variables (e.g., infl_class_SER, infl_sc_SER) in your global environment
-  assign(paste0("infl_class_", group_name), results$class, envir = .GlobalEnv)
-  assign(paste0("infl_sc_", group_name), results$super_class, envir = .GlobalEnv)
 }
 
-
-
-
-#-------------------------------------------------------------------------------
-# Plotting Figure E
-#-------------------------------------------------------------------------------
-
-infl_class_SER$neuron_type <- "5HTN"
-infl_class_DAN$neuron_type <- "PPL1"
-
-infl_class_combined <- rbind(infl_class_SER, infl_class_DAN)
-
-# Order
-infl_class_combined$neuron_type <- factor(
-  infl_class_combined$neuron_type,
-  levels = rev(c("5HTN", "PPL1"))
-)
-
-# Fill in blanks
-infl_class_combined <- infl_class_combined %>%
-  complete(class, neuron_type)
-
-
-# Order by highest influence, independent of from which source.
-class_order <- infl_class_combined %>%
-  group_by(class) %>%
-  summarise(max_mean = max(mean, na.rm = TRUE)) %>%
-  arrange(max_mean) %>%
-  pull(class)
-
-
-# Heatmap by class for all three neuron types
-class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_order), y = neuron_type, fill = mean)) +
-  geom_raster() +
-  scale_x_discrete(expand = c(0, 0)) +
-  scale_y_discrete(expand = c(0, 0)) +
-  scale_fill_viridis(
-    option = "cividis",
-    direction = 1,
-    breaks = c(min(infl_class_combined$mean, na.rm = TRUE), 
-               (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
-               max(infl_class_combined$mean, na.rm = TRUE)),
-    labels = round(c(min(infl_class_combined$mean, na.rm = TRUE), 
-                     (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
-                     max(infl_class_combined$mean, na.rm = TRUE)), 1),
-    na.value = "white"
-  ) + 
-  labs(title = NULL,
-       x = NULL,
-       y = NULL,
-       fill = "Mean influence") +
-  theme_minimal() +
-  coord_fixed() +
-  guides(
-    fill = guide_colorbar(
-      title.position = "top",
-      title.hjust = 0.5 
-    )
-  )+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        panel.grid = element_blank(),
-        panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8),
-        panel.background = element_blank(),
-        legend.title.position = "bottom",
-        legend.key.width = unit(1, "null"),
-        legend.key.height = unit(0.3, "cm"),
-        legend.position = "bottom",
-        legend.direction = "horizontal")
-
-print(class_plot)
-
-if(write_plots){
-  ggsave(paste0(output_path, "Figure_4S3_F.pdf"), 
-         plot = class_plot, width = 20, height = 16, units = "cm")
-  ggsave(paste0(output_path, "Figure_4S3_F.pdf"), 
-         plot = class_plot, width = 20, height = 16, units = "cm")
-}
-
-
-
-
-
-
-
-
-#-------------------------------------------------------------------------------
-# Plotting Figure F
-#-------------------------------------------------------------------------------
-
-# Remove autocrine
-infl_class_SER_no_bSEL <- infl_class_SER_no_bSEL %>% filter(class != "5HTN")
-
-# Combine
-infl_class_SER$neuron_type <- "5HTN"
-infl_class_SER_no_bSEL$neuron_type <- "No Bitter SEL"
-
-infl_class_combined <- rbind(infl_class_SER, infl_class_SER_no_bSEL)
-
-
-# Order
-infl_class_combined$neuron_type <- factor(
-  infl_class_combined$neuron_type,
-  levels = rev(c("5HTN", "No Bitter SEL"))
-)
-
-
-# Calculate overall mean by class across all neuron types for ordering
-class_order <- infl_class_combined %>%
-  group_by(class) %>%
-  summarise(overall_mean = mean(mean, na.rm = TRUE)) %>%
-  arrange(overall_mean) %>%
-  pull(class)
-
-# Heatmap by class for all three neuron types
-class_plot <- ggplot(infl_class_combined, aes(x = factor(class, levels = class_order), y = neuron_type, fill = mean)) +
-  geom_raster() +
-  scale_x_discrete(expand = c(0, 0)) +
-  scale_y_discrete(expand = c(0, 0)) +
-  scale_fill_viridis(
-    option = "cividis",
-    direction = 1,
-    breaks = c(min(infl_class_combined$mean, na.rm = TRUE), 
-               (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
-               max(infl_class_combined$mean, na.rm = TRUE)),
-    labels = round(c(min(infl_class_combined$mean, na.rm = TRUE), 
-                     (min(infl_class_combined$mean, na.rm = TRUE) + max(infl_class_combined$mean, na.rm = TRUE)) / 2, 
-                     max(infl_class_combined$mean, na.rm = TRUE)), 1),
-    na.value = "white"
-  ) + 
-  labs(title = NULL,
-       x = NULL,
-       y = NULL,
-       fill = "Mean influence") +
-  theme_minimal() +
-  coord_fixed() +
-  guides(
-    fill = guide_colorbar(
-      title.position = "top",  
-      title.hjust = 0.5 
-    )
-  )+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        panel.grid = element_blank(),
-        panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8),
-        panel.background = element_blank(),
-        legend.title.position = "bottom",
-        legend.key.width = unit(1, "null"),
-        legend.key.height = unit(0.3, "cm"),
-        legend.position = "bottom",
-        legend.direction = "horizontal")
-
-print(class_plot)
-
-if(write_plots){
-  ggsave(paste0(output_path, "Figure_4S3_G.pdf"), 
-         plot = class_plot, width = 20, height = 16, units = "cm")
-  ggsave(paste0(output_path, "Figure_4S3_G.pdf"), 
-         plot = class_plot, width = 20, height = 16, units = "cm")
-}
-
+# Generate plots in .R script
+source("Figure_4S3_E-F_Plotting.R")
