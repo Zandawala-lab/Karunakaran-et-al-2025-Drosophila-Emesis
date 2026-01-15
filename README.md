@@ -5,7 +5,7 @@ Code to replicate scRNA analysis and Figure S4-3 connectomic analysis. https://d
 Files corresponding to the figures numbers may be ran in their entirety to generate plots. The outputs of these files have been included in the /output/ folder.
 
 ### Figure_4S3_A-D.R
-From [Codex v783](https://codex.flywire.ai/api/download?dataset=fafb) (09/20/25), download and place in /input/:    
+From [Codex v783](https://codex.flywire.ai/api/download?dataset=fafb) (09/20/25), download and place in /input/ (folder must be created):    
 - connections.csv, classification.csv, consolidated_cell_types.csv  
 - fafb_v783_princeton_synapse_table.csv
   
@@ -22,3 +22,6 @@ From [GitHub funkelab/drosophila_neurotransmitters](https://github.com/funkelab/
 ### Figure_2-6_scRNA.R
 From [Zenodo](https://zenodo.org/uploads/18261450), download and place in /input/:  
 - Gut_seurat.rda, amine_seurat.rds, Brain_Waddell_seurat.rds
+
+## Questions:
+Address questions or requests for files to mzandawala[at]unr.edu or zeyuc[at]unr.edu.
